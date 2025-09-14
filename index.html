@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>E-sense Car Analyzer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>E-sense — Car Analyzer</h1>
+      <p class="subtitle">Загрузите фото автомобиля — сервер вернёт прогнозы по 4 моделям</p>
+    </header>
+
+    <section class="uploader">
+      <form id="uploadForm" enctype="multipart/form-data" method="post" action="/api/analyze">
+        <label class="file-label">
+          <input id="imageInput" name="image" type="file" accept="image/*" required />
+          <span>Выбрать файл</span>
+        </label>
+        <button id="submitBtn" type="submit" class="btn-red">Отправить и проанализировать</button>
+      </form>
+
+      <div id="previewBox" class="preview">Превью появится здесь</div>
+    </section>
+
+    <section class="result" id="result" aria-live="polite">
+      <h2>Результат</h2>
+      <div id="resultContent">Нет данных</div>
+    </section>
+
+    <footer class="footer">E-sense • Дизайн в духе InDriver — акцент на CTA</footer>
+  </main>
+
+<script>
+const form = document.getElementById('uploadForm');
+const input = document.getElementById('imageInput');
+const preview = document.getElementById('previewBox');
+const resultContent = document.getElementById('resultContent');
+const submitBtn = document.getElementById('submitBtn');
+
+input.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) { preview.innerHTML = 'Превью появится здесь'; return; }
+  const url = URL.createObjectURL(f);
+  preview.innerHTML = '<img src="'+url+'" alt="preview" />';
+});
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!input.files.length) return alert('Выберите файл');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Анализ...';
+  resultContent.textContent = 'Ожидание ответа от сервера...';
+  const fd = new FormData();
+  fd.append('image', input.files[0]);
+  try {
+    const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({error:'Ошибка'}));
+      resultContent.innerHTML = '<div class="err">Ошибка: '+(err.error||res.status)+'</div>';
+    } else {
+      const json = await res.json();
+      // build result HTML
+      let html = '<ul class="reslist">';
+      html += '<li>Машина: <strong>' + (json.car_prediction||'—') + '</strong> (' + (json.car_confidence||0).toFixed(2) + ')</li>';
+      html += '<li>Повреждения: <strong>' + (json.damage_prediction||'—') + '</strong> (' + (json.damage_confidence||0).toFixed(2) + ')</li>';
+      html += '<li>Чистота: <strong>' + (json.dirt_level||'—') + '</strong> (' + (json.dirt_confidence||0).toFixed(2) + ')</li>';
+      html += '<li>Ржавчина: <strong>' + (json.rust_prediction||'—') + '</strong> (' + (json.rust_confidence||0).toFixed(2) + ')</li>';
+      html += '</ul>';
+      resultContent.innerHTML = html;
+    }
+  } catch (err) {
+    resultContent.innerHTML = '<div class="err">Ошибка сети: '+err.message+'</div>';
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Отправить и проанализировать';
+  }
+});
+</script>
+
+</body>
+</html>

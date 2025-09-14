@@ -1,0 +1,10 @@
+flask
+werkzeug
+pillow
+numpy
+opencv-python
+torch
+torchvision
+efficientnet_pytorch
+onnxruntime
+inference_sdk
