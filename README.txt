@@ -2,4 +2,4 @@ In September this year, I participated in Decentrathon 4.0, where the task was t
 Our team focused on prediction accuracy rather than speed, which allowed us to achieve 96% prediction accuracy. Unfortunately, we did not win, 
 but this experience was truly valuable and greatly contributed to my growth.
 
-![ex1](images/1766865537262.jpg)
+![ex1](decentra4.0/images/1766865537262.jpg)
